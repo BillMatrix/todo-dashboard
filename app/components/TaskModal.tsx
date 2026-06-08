@@ -6,10 +6,10 @@ import { Subject, TaskWithSubject } from "../lib/supabase";
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSubmit: (task: { title: string; description: string; deadline: string | null; status: TaskWithSubject["status"]; subject_id: string }) => void;
+  onSubmit: (task: { title: string; description: string | null; deadline: string | null; status: TaskWithSubject["status"]; subject_id: string }) => void;
   subjects: Subject[];
   selectedSubject: string | null;
-  initialData?: { title: string; description: string; deadline: string; status: TaskWithSubject["status"]; subject_id: string } | undefined;
+  initialData?: { title: string; description: string | null; deadline: string | null; status: TaskWithSubject["status"]; subject_id: string } | undefined;
 };
 
 export default function TaskModal({ open, onClose, onSubmit, subjects, selectedSubject, initialData }: Props) {

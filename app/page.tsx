@@ -44,7 +44,7 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const handleAddTask = async (task: { title: string; description: string; deadline: string | null; status: TaskWithSubject["status"]; subject_id: string }) => {
+  const handleAddTask = async (task: { title: string; description: string | null; deadline: string | null; status: TaskWithSubject["status"]; subject_id: string }) => {
     if (editingTask) {
       const { error } = await supabase.from("tasks").update({ ...task }).eq("id", editingTask.id);
       if (error) { console.error(error); return; }
