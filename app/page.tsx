@@ -152,6 +152,23 @@ export default function Home() {
     return map;
   };
 
+  // For "not_started" column in "All Subjects" view, also provide a globally sorted flat list
+  const sortedNotStartedTasks: TaskWithSubject[] = [];
+  if (!selectedSubject) {
+    sortedNotStartedTasks = filteredTasks
+      .filter((t) => t.status === "not_started")
+      .sort((a: TaskWithSubject, b: TaskWithSubject) => {
+        // Prioritized subjects first
+        const aP = prioritized.includes(a.subject_id) ? 0 : 1;
+        const bP = prioritized.includes(b.subject_id) ? 0 : 1;
+        if (aP !== bP) return aP - bP;
+        // Then by deadline ascending, no-deadline tasks last
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return a.deadline.localeCompare(b.deadline);
+      });
+  }
+
   const subjectTasks = (selectedSubject ? tasks.filter((t) => t.subject_id === selectedSubject) : tasks);
   const totalCounts = { not_started: 0, in_progress: 0, done: 0 };
   subjectTasks.forEach((t) => totalCounts[t.status]++);
@@ -274,6 +291,9 @@ export default function Home() {
               const columnTasks = groupedBySubject(status);
               const count = totalCounts[status];
 
+              // For "not_started" in "All Subjects" view, use flat sorted list
+              const showFlat = status === "not_started" && !selectedSubject;
+
               return (
                 <div key={status} className="flex-1 min-w-0 flex flex-col">
                   <div className={`flex items-center gap-2 mb-3 pb-2 border-b-2 ${borderColor}`}>
@@ -282,7 +302,21 @@ export default function Home() {
                   </div>
 
                   <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-                    {columnTasks.size === 0 ? (
+                    {showFlat ? (
+                      sortedNotStartedTasks.length === 0 ? (
+                        <div className="text-center py-8 text-sm text-gray-400">No tasks</div>
+                      ) : (
+                        sortedNotStartedTasks.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onCycleStatus={handleCycleStatus}
+                            onEdit={openEditTask}
+                            onDelete={handleDeleteTask}
+                          />
+                        ))
+                      )
+                    ) : columnTasks.size === 0 ? (
                       <div className="text-center py-8 text-sm text-gray-400">No tasks</div>
                     ) : (
                       Array.from(columnTasks.entries()).map(([subjectName, subjectTasks]) => (
