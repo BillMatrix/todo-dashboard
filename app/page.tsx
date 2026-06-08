@@ -180,13 +180,13 @@ export default function Home() {
             }`}
           >
             <div className="font-semibold">All Subjects</div>
-            <div className="text-xs text-gray-400">{subjectTasks.length} tasks</div>
+            <div className="text-xs text-gray-400">{subjectTasks.filter((t) => t.status !== "done").length} tasks</div>
           </button>
         </div>
 
         <div className="px-2 py-1 space-y-0.5">
           {sortedSubjects.map((subject) => {
-            const count = tasks.filter((t) => t.subject_id === subject.id).length;
+            const count = tasks.filter((t) => t.subject_id === subject.id && t.status !== "done").length;
             const isPrioritized = prioritized.includes(subject.id);
             return (
               <div
