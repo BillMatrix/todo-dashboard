@@ -14,6 +14,13 @@ const COLUMNS: { key: Tab; label: string; color: string; borderColor: string; bg
   { key: "done", label: "Done", color: "text-green-600", borderColor: "border-green-400", bg: "bg-green-50" },
 ];
 
+// Load prioritized subjects from localStorage
+const loadPrioritized = (): string[] => {
+  try { return JSON.parse(localStorage.getItem("prioritized_subjects") || "[]"); }
+  catch { return []; }
+};
+const savePrioritized = (ids: string[]) => localStorage.setItem("prioritized_subjects", JSON.stringify(ids));
+
 export default function Home() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [tasks, setTasks] = useState<TaskWithSubject[]>([]);
@@ -23,6 +30,7 @@ export default function Home() {
   const [editingTask, setEditingTask] = useState<TaskWithSubject | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [newTaskSubject, setNewTaskSubject] = useState<string | null>(null);
+  const [prioritized, setPrioritized] = useState<string[]>(loadPrioritized);
 
   const fetchData = async () => {
     setLoading(true);
@@ -76,6 +84,26 @@ export default function Home() {
     fetchData();
   };
 
+  const handleDeleteSubject = async (id: string) => {
+    // Delete all tasks for this subject first (cascade)
+    await supabase.from("tasks").delete().eq("subject_id", id);
+    await supabase.from("subjects").delete().eq("id", id);
+    // Update prioritized list
+    const updated = prioritized.filter((pid) => pid !== id);
+    setPrioritized(updated);
+    savePrioritized(updated);
+    if (selectedSubject === id) setSelectedSubject(null);
+    fetchData();
+  };
+
+  const handleTogglePriority = (id: string) => {
+    const updated = prioritized.includes(id)
+      ? prioritized.filter((pid) => pid !== id)
+      : [...prioritized, id];
+    setPrioritized(updated);
+    savePrioritized(updated);
+  };
+
   const openAddTask = (subjectId?: string) => {
     setEditingTask(null);
     setNewTaskSubject(subjectId || null);
@@ -107,6 +135,14 @@ export default function Home() {
   const totalCounts = { not_started: 0, in_progress: 0, done: 0 };
   subjectTasks.forEach((t) => totalCounts[t.status]++);
 
+  // Sort subjects: prioritized first, then alphabetical
+  const sortedSubjects = [...subjects].sort((a, b) => {
+    const aP = prioritized.includes(a.id) ? 0 : 1;
+    const bP = prioritized.includes(b.id) ? 0 : 1;
+    if (aP !== bP) return aP - bP;
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -128,21 +164,51 @@ export default function Home() {
         </div>
 
         <div className="px-2 py-1 space-y-0.5">
-          {subjects.map((subject) => {
+          {sortedSubjects.map((subject) => {
             const count = tasks.filter((t) => t.subject_id === subject.id).length;
+            const isPrioritized = prioritized.includes(subject.id);
             return (
-              <button
+              <div
                 key={subject.id}
-                onClick={() => setSelectedSubject(subject.id)}
-                className={`w-full text-left px-3 py-2 text-sm rounded-lg truncate transition-colors ${
-                  selectedSubject === subject.id
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-50"
+                className={`group rounded-lg transition-colors ${
+                  selectedSubject === subject.id ? "bg-blue-50" : "hover:bg-gray-50"
                 }`}
               >
-                <div className="font-medium truncate">{subject.name}</div>
-                <div className="text-xs text-gray-400">{count} tasks</div>
-              </button>
+                <button
+                  onClick={() => setSelectedSubject(subject.id)}
+                  className="w-full text-left px-3 py-2 text-sm"
+                >
+                  <div className="flex items-center gap-1.5">
+                    {isPrioritized && (
+                      <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26 6.91 1.01-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" />
+                      </svg>
+                    )}
+                    <span className="font-medium truncate">{subject.name}</span>
+                  </div>
+                  <div className="text-xs text-gray-400">{count} tasks</div>
+                </button>
+                <div className="flex justify-end px-2 pb-1 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleTogglePriority(subject.id); }}
+                    className="p-1 text-gray-400 hover:text-amber-500 rounded transition-colors"
+                    title={isPrioritized ? "Remove priority" : "Mark as priority"}
+                  >
+                    <svg className="w-3.5 h-3.5" fill={isPrioritized ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.518 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.26.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.55-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.518-4.674z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteSubject(subject.id); }}
+                    className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                    title="Delete subject"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             );
           })}
         </div>
