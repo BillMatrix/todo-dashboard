@@ -129,13 +129,13 @@ export default function Home() {
       map.get(key)!.push(task);
     }
     // Sort tasks within each group by deadline (ascending), no-deadline tasks last
-    for (const [, taskList] of map) {
-      taskList.sort((a, b) => {
+    map.forEach((taskList) => {
+      taskList.sort((a: TaskWithSubject, b: TaskWithSubject) => {
         if (!a.deadline) return 1;
         if (!b.deadline) return -1;
         return a.deadline.localeCompare(b.deadline);
       });
-    }
+    });
     // When viewing all subjects, sort groups by priority then name
     if (!selectedSubject) {
       const sorted = Array.from(map.entries()).sort(([aName], [bName]) => {
