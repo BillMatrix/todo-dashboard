@@ -148,11 +148,19 @@ export default function Home() {
   const totalCounts = { not_started: 0, in_progress: 0, done: 0 };
   subjectTasks.forEach((t) => totalCounts[t.status]++);
 
-  // Sort subjects: prioritized first, then alphabetical
+  // Sort subjects: prioritized first, then by not-started task count (desc), then alphabetical
+  const notStartedCounts: Record<string, number> = {};
+  tasks.filter((t) => t.status === "not_started").forEach((t) => {
+    notStartedCounts[t.subject_id] = (notStartedCounts[t.subject_id] || 0) + 1;
+  });
+
   const sortedSubjects = [...subjects].sort((a, b) => {
     const aP = prioritized.includes(a.id) ? 0 : 1;
     const bP = prioritized.includes(b.id) ? 0 : 1;
     if (aP !== bP) return aP - bP;
+    const aCount = notStartedCounts[a.id] || 0;
+    const bCount = notStartedCounts[b.id] || 0;
+    if (bCount !== aCount) return bCount - aCount;
     return a.name.localeCompare(b.name);
   });
 
