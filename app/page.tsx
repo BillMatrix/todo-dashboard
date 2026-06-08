@@ -128,6 +128,19 @@ export default function Home() {
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(task);
     }
+    // When viewing all subjects, sort groups by priority then name
+    if (!selectedSubject) {
+      const sorted = Array.from(map.entries()).sort(([aName], [bName]) => {
+        const aSubject = subjects.find((s) => s.name === aName);
+        const bSubject = subjects.find((s) => s.name === bName);
+        const aP = aSubject && prioritized.includes(aSubject.id) ? 0 : 1;
+        const bP = bSubject && prioritized.includes(bSubject.id) ? 0 : 1;
+        if (aP !== bP) return aP - bP;
+        return aName.localeCompare(bName);
+      });
+      const sortedMap = new Map(sorted);
+      return sortedMap;
+    }
     return map;
   };
 
