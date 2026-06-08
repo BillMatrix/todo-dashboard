@@ -110,38 +110,42 @@ export default function Home() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col overflow-y-auto flex-shrink-0">
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto flex-shrink-0">
         <div className="p-4 border-b border-gray-200">
           <h1 className="text-base font-bold text-gray-900">Todo Dashboard</h1>
         </div>
 
-        <button
-          onClick={() => setSelectedSubject(null)}
-          className={`mx-2 px-3 py-2.5 text-left text-sm font-medium rounded-lg transition-colors ${
-            !selectedSubject ? "bg-blue-50 text-blue-700 border-l-2 border-blue-600" : "text-gray-700 hover:bg-gray-50"
-          }`}
-        >
-          <div className="font-semibold">All Subjects</div>
-          <div className="text-xs text-gray-400 mt-0.5">{subjectTasks.length} tasks</div>
-        </button>
+        <div className="px-2 pt-2">
+          <button
+            onClick={() => setSelectedSubject(null)}
+            className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+              !selectedSubject ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            <div className="font-semibold">All Subjects</div>
+            <div className="text-xs text-gray-400">{subjectTasks.length} tasks</div>
+          </button>
+        </div>
 
-        {subjects.map((subject) => {
-          const count = tasks.filter((t) => t.subject_id === subject.id).length;
-          return (
-            <button
-              key={subject.id}
-              onClick={() => setSelectedSubject(subject.id)}
-              className={`mx-2 mt-0.5 px-3 py-2.5 text-left text-sm rounded-lg truncate transition-colors ${
-                selectedSubject === subject.id
-                  ? "bg-blue-50 text-blue-700 border-l-2 border-blue-600"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <div className="font-medium truncate">{subject.name}</div>
-              <div className="text-xs text-gray-400">{count} tasks</div>
-            </button>
-          );
-        })}
+        <div className="px-2 py-1 space-y-0.5">
+          {subjects.map((subject) => {
+            const count = tasks.filter((t) => t.subject_id === subject.id).length;
+            return (
+              <button
+                key={subject.id}
+                onClick={() => setSelectedSubject(subject.id)}
+                className={`w-full text-left px-3 py-2 text-sm rounded-lg truncate transition-colors ${
+                  selectedSubject === subject.id
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <div className="font-medium truncate">{subject.name}</div>
+                <div className="text-xs text-gray-400">{count} tasks</div>
+              </button>
+            );
+          })}
+        </div>
 
         <div className="p-3 mt-2">
           <button
