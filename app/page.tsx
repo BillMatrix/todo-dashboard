@@ -152,22 +152,19 @@ export default function Home() {
     return map;
   };
 
-  // For "not_started" column in "All Subjects" view, also provide a globally sorted flat list
-  const sortedNotStartedTasks: TaskWithSubject[] = [];
-  if (!selectedSubject) {
-    sortedNotStartedTasks = filteredTasks
-      .filter((t) => t.status === "not_started")
-      .sort((a: TaskWithSubject, b: TaskWithSubject) => {
-        // Prioritized subjects first
-        const aP = prioritized.includes(a.subject_id) ? 0 : 1;
-        const bP = prioritized.includes(b.subject_id) ? 0 : 1;
-        if (aP !== bP) return aP - bP;
-        // Then by deadline ascending, no-deadline tasks last
-        if (!a.deadline) return 1;
-        if (!b.deadline) return -1;
-        return a.deadline.localeCompare(b.deadline);
-      });
-  }
+  // For "not_started" column in "All Subjects" view, provide a globally sorted flat list
+  const sortedNotStartedTasks: TaskWithSubject[] = selectedSubject
+    ? []
+    : filteredTasks
+        .filter((t) => t.status === "not_started")
+        .sort((a: TaskWithSubject, b: TaskWithSubject) => {
+          const aP = prioritized.includes(a.subject_id) ? 0 : 1;
+          const bP = prioritized.includes(b.subject_id) ? 0 : 1;
+          if (aP !== bP) return aP - bP;
+          if (!a.deadline) return 1;
+          if (!b.deadline) return -1;
+          return a.deadline.localeCompare(b.deadline);
+        });
 
   const subjectTasks = (selectedSubject ? tasks.filter((t) => t.subject_id === selectedSubject) : tasks);
   const totalCounts = { not_started: 0, in_progress: 0, done: 0 };
