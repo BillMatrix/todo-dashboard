@@ -7,17 +7,20 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSubmit: (task: { title: string; description: string | null; deadline: string | null; status: TaskWithSubject["status"]; subject_id: string }) => void;
+  onAddSubject?: (name: string) => Promise<void>;
   subjects: Subject[];
   selectedSubject: string | null;
   initialData?: { title: string; description: string | null; deadline: string | null; status: TaskWithSubject["status"]; subject_id: string } | undefined;
 };
 
-export default function TaskModal({ open, onClose, onSubmit, subjects, selectedSubject, initialData }: Props) {
+export default function TaskModal({ open, onClose, onSubmit, onAddSubject, subjects, selectedSubject, initialData }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [deadline, setDeadline] = useState("");
   const [status, setStatus] = useState<TaskWithSubject["status"]>("not_started");
   const [subjectId, setSubjectId] = useState("");
+  const [newSubjectName, setNewSubjectName] = useState("");
+  const [addingNewSubject, setAddingNewSubject] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -26,6 +29,8 @@ export default function TaskModal({ open, onClose, onSubmit, subjects, selectedS
       setDeadline(initialData?.deadline || "");
       setStatus(initialData?.status || "not_started");
       setSubjectId(initialData?.subject_id || selectedSubject || subjects[0]?.id || "");
+      setAddingNewSubject(false);
+      setNewSubjectName("");
     }
   }, [open, initialData, selectedSubject, subjects]);
 
@@ -63,15 +68,62 @@ export default function TaskModal({ open, onClose, onSubmit, subjects, selectedS
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-            <select
-              value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {subjects.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+            {addingNewSubject ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newSubjectName}
+                  onChange={(e) => setNewSubjectName(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="New subject name"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newSubjectName.trim() && onAddSubject) {
+                      onAddSubject(newSubjectName.trim());
+                    }
+                    if (e.key === "Escape") {
+                      setAddingNewSubject(false);
+                      setNewSubjectName("");
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (newSubjectName.trim() && onAddSubject) {
+                      onAddSubject(newSubjectName.trim());
+                    }
+                  }}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={() => { setAddingNewSubject(false); setNewSubjectName(""); }}
+                  className="px-2 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <select
+                  value={subjectId}
+                  onChange={(e) => {
+                    if (e.target.value === "__new_subject__") {
+                      setAddingNewSubject(true);
+                    } else {
+                      setSubjectId(e.target.value);
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                  <option value="__new_subject__">+ Add New Subject...</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -266,14 +266,7 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* Floating Add Subject button - always visible */}
-      <button
-        onClick={() => setSubjectModalOpen(true)}
-        className="fixed bottom-6 left-72 px-4 py-2 bg-blue-600 text-white rounded-full shadow-lg text-sm font-medium hover:bg-blue-700 transition-colors z-40"
-        title="Add Subject"
-      >
-        Add
-      </button>
+      {/* Subject modal */}
 
       {/* Main Kanban Board */}
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -356,6 +349,13 @@ export default function Home() {
         open={taskModalOpen}
         onClose={() => { setTaskModalOpen(false); setEditingTask(null); }}
         onSubmit={handleAddTask}
+        onAddSubject={async (name: string) => {
+          const { data, error } = await supabase.from("subjects").insert([{ name }]).select();
+          if (!error && data) {
+            // Refresh data to get updated subjects
+            fetchData();
+          }
+        }}
         subjects={subjects}
         selectedSubject={newTaskSubject || selectedSubject}
         initialData={editingTask || undefined}
