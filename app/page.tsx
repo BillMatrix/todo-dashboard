@@ -266,6 +266,17 @@ export default function Home() {
         </div>
       </aside>
 
+      {/* Floating Add Subject button - always visible */}
+      <button
+        onClick={() => setSubjectModalOpen(true)}
+        className="fixed bottom-6 left-72 w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-colors z-40"
+        title="Add Subject"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
+
       {/* Main Kanban Board */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="px-6 py-3 border-b border-gray-200 bg-white flex items-center justify-between">
