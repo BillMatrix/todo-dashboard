@@ -317,13 +317,6 @@ export default function Home() {
         open={taskModalOpen}
         onClose={() => { setTaskModalOpen(false); setEditingTask(null); }}
         onSubmit={handleAddTask}
-        onAddSubject={async (name: string) => {
-          const { data, error } = await supabase.from("subjects").insert([{ name }]).select();
-          if (!error && data) {
-            // Refresh data to get updated subjects
-            fetchData();
-          }
-        }}
         subjects={subjects}
         selectedSubject={newTaskSubject || selectedSubject}
         initialData={editingTask || undefined}
