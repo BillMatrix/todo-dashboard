@@ -179,7 +179,14 @@ export default function Home() {
           <h1 className="text-base font-bold text-gray-900">Todo Dashboard</h1>
         </div>
 
-        <div className="px-2 pt-2">
+        <div className="px-2 pt-2 space-y-0.5">
+          <button
+            onClick={() => setSubjectModalOpen(true)}
+            className="w-full text-left px-3 py-2 text-sm border border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors"
+          >
+            + Add Subject
+          </button>
+
           <button
             onClick={() => setSelectedSubject(null)}
             className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
@@ -241,14 +248,6 @@ export default function Home() {
           })}
         </div>
 
-        <div className="p-3 mt-2">
-          <button
-            onClick={() => setSubjectModalOpen(true)}
-            className="w-full px-3 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors"
-          >
-            + Add Subject
-          </button>
-        </div>
       </aside>
 
       {/* Subject modal */}
